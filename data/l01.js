@@ -1,0 +1,50 @@
+window.LESSONS=window.LESSONS||{};
+LESSONS[1]={block:"A",icon:"📜",ko:"한글의 탄생",
+title:"El nacimiento del hangul",
+subtitle:"Quién lo inventó, por qué, y la idea genial detrás de cada letra.",
+goals:["Sé quién creó el hangul (<k>세종대왕</k>) y para qué.","Sé que las consonantes dibujan la boca y las vocales salen de · ㅡ ㅣ.","Entiendo que las letras forman <b>bloques silábicos</b>: <k>ㅎ</k>+<k>ㅏ</k>+<k>ㄴ</k> = <k>한</k>."],
+sections:[
+{skill:"gram",h:"Breve historia",
+ body:"• Antes se escribía con caracteres chinos (<k>한자</k>): solo los nobles sabían leer.<br>• <b>1443</b>: el rey <k>세종대왕</k> crea un alfabeto para todo el pueblo: <k>훈민정음</k> «los sonidos correctos para enseñar al pueblo».<br>• <b>1446</b>: se publica el libro que lo explica (hoy Memoria del Mundo de la UNESCO).<br>• Hoy se llama <k>한글</k> y se celebra el <b>9 de octubre</b> (<k>한글날</k>).",
+ widgets:[{type:"table",cols:["Letras","¿Cuántas?"],rows:[["Consonantes básicas: ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ ㅈ ㅊ ㅋ ㅌ ㅍ ㅎ","14"],["Vocales básicas: ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ","10"],["Dobles + compuestas","5 + 11"]]}]},
+{skill:"gram",h:"Las consonantes dibujan la boca",
+ body:"Las 5 consonantes básicas son dibujos de la boca vista de perfil. Si el sonido es más fuerte, se <b>añade un trazo</b> (가획).",
+ widgets:[{type:"origin",items:[
+  {j:"ㄱ",part:"raíz de la lengua",body:"La lengua sube atrás, como al decir «g».",fam:["ㄱ","ㅋ","ㄲ"]},
+  {j:"ㄴ",part:"punta de la lengua",body:"La punta toca la encía de arriba: «n».",fam:["ㄴ","ㄷ","ㅌ","ㄹ"]},
+  {j:"ㅁ",part:"boca",body:"Los labios cerrados: «m».",fam:["ㅁ","ㅂ","ㅍ"]},
+  {j:"ㅅ",part:"diente",body:"El aire silba entre los dientes: «s».",fam:["ㅅ","ㅈ","ㅊ"]},
+  {j:"ㅇ",part:"garganta",body:"Garganta abierta. Al inicio no suena; al final, «ng».",fam:["ㅇ","ㅎ"]}]}]},
+{skill:"gram",h:"Las vocales: cielo · tierra · ser humano",
+ body:"Tres símbolos forman todas las vocales: <b>·</b> cielo, <b>ㅡ</b> tierra, <b>ㅣ</b> ser humano.",
+ widgets:[{type:"cheonjiin"}]},
+{skill:"gram",h:"Se escribe en bloques",
+ body:"Cada bloque es una sílaba: <span style='color:#c0392b'><b>consonante</b></span> + <span style='color:#1f5fbf'><b>vocal</b></span> (+ <span style='color:#1e8449'><b>final</b></span>). Si empieza por vocal, se pone la <k>ㅇ</k> muda: <k>아</k> = «a».",
+ widgets:[{type:"blocks"}]},
+{skill:"listen",h:"Escucha y toca",
+ body:"Toca cada palabra: escucharás la voz nativa y verás el significado.",
+ widgets:[{type:"read",items:[{ko:"한글",rom:"hangeul",m:"alfabeto coreano"},{ko:"한국",rom:"hanguk",m:"Corea"},{ko:"한국어",rom:"hangugeo",m:"idioma coreano"},{ko:"세종대왕",rom:"sejong daewang",m:"rey Sejong"},{ko:"안녕하세요",rom:"annyeonghaseyo",m:"hola"},{ko:"사랑",rom:"sarang",m:"amor"}]}]},
+{skill:"speak",h:"Repite en voz alta",
+ body:"Pulsa 🔊 para escuchar y 🎙 para hablar. El sitio te dirá cuánto se parece tu pronunciación.",
+ widgets:[{type:"speak",items:[{ko:"한글",es:"hangul"},{ko:"한국어",es:"idioma coreano"},{ko:"안녕하세요",es:"hola"},{ko:"세종대왕",es:"rey Sejong"}]}]},
+{skill:"read",h:"Lee tu primera sílaba",
+ widgets:[{type:"builder",l:"ㄱㄴㄷㅁㅅㅇㅎ",v:"ㅏㅓㅗㅜㅡㅣ",t:["","ㄴ","ㄹ","ㅁ","ㅇ"]}]},
+{skill:"write",h:"Escribe las 5 formas básicas",
+ body:"Dos reglas: <b>de arriba abajo</b> y <b>de izquierda a derecha</b>. Pulsa ▶ para ver los trazos y ✍️ para escribir.",
+ widgets:[{type:"writers",chars:"ㄱㄴㅁㅅㅇ",size:110},{type:"writers",chars:"한글",size:140},{type:"namebox"}]}
+],
+words:[{ko:"한글",rom:"hangeul",m:"hangul, alfabeto coreano"},{ko:"한국",rom:"hanguk",m:"Corea"},{ko:"한국어",rom:"hangugeo",m:"idioma coreano"},{ko:"세종대왕",rom:"sejong daewang",m:"rey Sejong el Grande"},{ko:"훈민정음",rom:"hunminjeongeum",m:"«sonidos correctos para enseñar al pueblo»"},{ko:"자음",rom:"jaeum",m:"consonante"},{ko:"모음",rom:"moeum",m:"vocal"},{ko:"받침",rom:"batchim",m:"consonante final"}],
+sets:[
+{title:"Comprensión",items:[
+ {type:"mc",q:"¿Quién creó el hangul?",opts:["El rey Sejong","Un monje","Los españoles","El emperador chino"],a:0},
+ {type:"mc",q:"¿En qué año?",opts:["1443","1592","1897","1945"],a:0},
+ {type:"mc",q:"¿Qué dibuja <k>ㅁ</k>?",opts:["la boca","un diente","la garganta","la lengua"],a:0},
+ {type:"mc",q:"¿Qué dibuja <k>ㅅ</k>?",opts:["un diente","la boca","la nariz","la garganta"],a:0},
+ {type:"mc",q:"<k>ㄱ</k> + un trazo = ?",opts:["ㅋ","ㄷ","ㄲ","ㅎ"],a:0},
+ {type:"mc",q:"<b>ㅡ</b> representa…",opts:["la tierra","el cielo","el ser humano","el agua"],a:0},
+ {type:"mc",q:"En <k>한</k>, ¿cuál es la consonante final?",opts:["ㄴ","ㅎ","ㅏ","no tiene"],a:0}]},
+{title:"Escuchar y hablar",items:[
+ {type:"listen",say:"한글",opts:["한글","한국","사랑","한국어"],a:0},{type:"listen",say:"한국어",opts:["한국","한국어","한글","안녕"],a:1},
+ {type:"speak",ko:"한국어",es:"idioma coreano"},{type:"speak",ko:"안녕하세요",es:"hola"}]},
+{title:"Escribir",items:[{type:"draw",ch:"ㄱ"},{type:"draw",ch:"ㄴ"},{type:"draw",ch:"ㅁ"},{type:"draw",ch:"ㅅ"},{type:"draw",ch:"ㅇ"},{type:"draw",ch:"한"}]}
+]};
