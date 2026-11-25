@@ -112,60 +112,99 @@ function match(user, target){
 }
 const pathD=p=>"M"+p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" L");
 
-/* ---------- the writer widget ---------- */
-const NS="http://www.w3.org/2000/svg";
+/* ---------- the writer widget ----------
+ * The ink is the real Noto Sans KR glyph (no home-made "stroke font"): every pixel of the glyph is
+ * assigned to the nearest stroke of the stroke-order data, so the glyph appears stroke by stroke. */
+const NS="http://www.w3.org/2000/svg", XH="http://www.w3.org/1999/xhtml";
 const el=(tag,attrs)=>{ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
 const COLORS={L:"#c0392b",V:"#1f5fbf",T:"#1e8449",j:"#1f2330"};
+const FONT='"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const hex=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];
+const fontReady=ch=>{ if(!document.fonts||!document.fonts.load) return Promise.resolve();
+  return Promise.race([document.fonts.load('700 80px "Noto Sans KR"',ch).catch(()=>{}), new Promise(r=>setTimeout(r,2500))]); };
+
+function glyphRaster(ch, strokes, R){
+  // 1) draw the glyph big, find its ink box
+  const B=Math.round(R*1.6), c=document.createElement("canvas"); c.width=c.height=B;
+  const x=c.getContext("2d",{willReadFrequently:true}); x.fillStyle="#000"; x.textAlign="center"; x.textBaseline="middle";
+  x.font=`700 ${Math.round(B*0.62)}px ${FONT}`; x.fillText(ch,B/2,B/2);
+  const d=x.getImageData(0,0,B,B).data; let x0=B,y0=B,x1=-1,y1=-1;
+  for(let j=0;j<B;j++) for(let i=0;i<B;i++) if(d[(j*B+i)*4+3]>40){ if(i<x0)x0=i; if(i>x1)x1=i; if(j<y0)y0=j; if(j>y1)y1=j; }
+  if(x1<0) return null;
+  // 2) fit it onto the box covered by the stroke data (+ half a stroke width)
+  let bx0=1e9,by0=1e9,bx1=-1e9,by1=-1e9; strokes.forEach(s=>s.pts.forEach(([u,v])=>{bx0=Math.min(bx0,u);bx1=Math.max(bx1,u);by0=Math.min(by0,v);by1=Math.max(by1,v);}));
+  const pad=4.5, k=R/100, out=document.createElement("canvas"); out.width=out.height=R;
+  const o=out.getContext("2d",{willReadFrequently:true});
+  o.drawImage(c,x0,y0,x1-x0+1,y1-y0+1,(bx0-pad)*k,(by0-pad)*k,(bx1-bx0+2*pad)*k,(by1-by0+2*pad)*k);
+  const A=o.getImageData(0,0,R,R).data, alpha=new Uint8Array(R*R); for(let i=0;i<R*R;i++) alpha[i]=A[i*4+3];
+  return {R,alpha,own:null,tt:null};
+}
+function assign(G, strokes){ // nearest stroke + position along it, for every ink pixel
+  if(G.own) return; const R=G.R, own=new Int16Array(R*R).fill(-1), tt=new Float32Array(R*R), S=[];
+  strokes.forEach((s,si)=>{ const L=plen(s.pts), n=Math.max(4,Math.round(L/1.4)), P=resample(s.pts,n); P.forEach((p,i)=>S.push([p[0]*R/100,p[1]*R/100,si,i/(n-1)])); });
+  for(let j=0;j<R;j++) for(let i=0;i<R;i++){ const q=j*R+i; if(G.alpha[q]<8) continue; let best=1e9,b=null;
+    for(const s of S){ const dx=s[0]-i, dy=s[1]-j, dd=dx*dx+dy*dy; if(dd<best){best=dd;b=s;} } own[q]=b[2]; tt[q]=b[3]; }
+  G.own=own; G.tt=tt;
+}
 
 HW.create = function(container, text, opt={}){
   const size=opt.size||160, chars=Array.from(text);
-  // one syllable per writer; multi-char text = several boxes handled by caller
   const ch=chars[0];
   const parts=syllableParts(ch);
   const strokes=[]; parts.forEach(p=>p.strokes.forEach(s=>strokes.push({pts:s,role:p.role,jamo:p.jamo})));
   const sw=opt.strokeWidth || (isSyl(ch)?7.2:9);
   const svg=el("svg",{viewBox:"0 0 100 100",width:size,height:size,class:"hw-svg"});
-  // practice-paper guides
   const g0=el("g",{stroke:"#e9dcc8","stroke-width":"0.6","stroke-dasharray":"2 2"});
   g0.append(el("line",{x1:50,y1:0,x2:50,y2:100}),el("line",{x1:0,y1:50,x2:100,y2:50}));
   svg.append(el("rect",{x:.5,y:.5,width:99,height:99,fill:"#fffdf8",stroke:"#e2d3bb","stroke-width":"1",rx:"3"}),g0);
-  const gOut=el("g",{fill:"none",stroke:"#e7e1d7","stroke-width":sw,"stroke-linecap":"round","stroke-linejoin":"round"});
-  const gInk=el("g",{fill:"none","stroke-width":sw,"stroke-linecap":"round","stroke-linejoin":"round"});
+  // glyph layer: a canvas inside the svg
+  const R=Math.min(320,Math.round(size*Math.min(2,window.devicePixelRatio||1)));
+  const fo=el("foreignObject",{x:0,y:0,width:100,height:100}); fo.style.pointerEvents="none";
+  const cv=document.createElementNS(XH,"canvas"); cv.width=cv.height=R; cv.style.cssText="width:100%;height:100%;display:block";
+  fo.append(cv);
   const gNum=el("g",{"font-size":"7","font-weight":"700","font-family":"system-ui,sans-serif"});
+  const gHint=el("g",{fill:"none","stroke-width":sw,"stroke-linecap":"round","stroke-linejoin":"round"});
   const gUser=el("g",{fill:"none",stroke:"#2b7de9","stroke-width":sw*0.8,"stroke-linecap":"round","stroke-linejoin":"round",opacity:".75"});
-  svg.append(gOut,gInk,gNum,gUser);
-  strokes.forEach(s=>gOut.append(el("path",{d:pathD(s.pts)})));
+  svg.append(fo,gHint,gNum,gUser);
   container.append(svg);
   const colorFor=s=>opt.mono?"#1f2330":COLORS[s.role];
-  let timer=null, quiz=null, outlineOn=true;
-
-  function clearInk(){ gInk.innerHTML=""; gNum.innerHTML=""; gUser.innerHTML=""; }
-  function drawFull(){ clearInk(); strokes.forEach(s=>gInk.append(el("path",{d:pathD(s.pts),stroke:colorFor(s)}))); }
+  const RGB=strokes.map(s=>hex(colorFor(s))), OUT=hex("#e6dfd3");
+  let timer=null, raf=null, quiz=null, outlineOn=true, G=null, state={k:0,p:0};
+  const ready=fontReady(ch).then(()=>{ G=glyphRaster(ch,strokes,R); });
+  const ctx=cv.getContext("2d");
+  function paint(){ if(!G) return; const k=state.k,p=state.p, img=ctx.createImageData(R,R), D=img.data, full=k>=strokes.length;
+    if(!full||!opt.mono) assign(G,strokes);
+    for(let q=0;q<R*R;q++){ const a=G.alpha[q]; if(!a) continue; let c=null;
+      if(full&&opt.mono) c=RGB[0]; else { const s=G.own[q]; if(s<k||(s===k&&G.tt[q]<=p)) c=RGB[s]; }
+      if(!c){ if(!outlineOn) continue; c=OUT; }
+      D[q*4]=c[0]; D[q*4+1]=c[1]; D[q*4+2]=c[2]; D[q*4+3]=a; }
+    ctx.putImageData(img,0,0); }
+  const setState=(k,p)=>{ state={k,p}; paint(); };
+  function clearInk(){ gNum.innerHTML=""; gUser.innerHTML=""; gHint.innerHTML=""; setState(0,0); }
   function numLabel(i){ const s=strokes[i], p=s.pts[0];
     const c=el("circle",{cx:p[0],cy:p[1],r:4.2,fill:colorFor(s),opacity:".9"}); const t=el("text",{x:p[0],y:p[1]+2.4,"text-anchor":"middle",fill:"#fff"}); t.textContent=i+1; gNum.append(c,t); }
-  function animStroke(i,dur){
-    const s=strokes[i]; const p=el("path",{d:pathD(s.pts),stroke:colorFor(s)});
-    gInk.append(p); const L=p.getTotalLength(); p.style.strokeDasharray=L; p.style.strokeDashoffset=L;
-    p.getBoundingClientRect(); p.style.transition=`stroke-dashoffset ${dur}ms ease-in-out`; p.style.strokeDashoffset=0;
-    return p;
-  }
+  function animStroke(i,dur,done){ cancelAnimationFrame(raf); const t0=performance.now();
+    const f=now=>{ const p=Math.min(1,(now-t0)/dur), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2; setState(i,e);
+      if(p<1) raf=requestAnimationFrame(f); else { setState(i+1,0); done&&done(); } };
+    raf=requestAnimationFrame(f); }
   const api={
-    strokes, parts, char:ch,
-    stop(){ clearTimeout(timer); timer=null; },
+    strokes, parts, char:ch, ready,
+    stop(){ clearTimeout(timer); timer=null; cancelAnimationFrame(raf); },
     animate(onDone){
-      api.cancelQuiz(); api.stop(); clearInk(); let i=0;
-      const next=()=>{ if(i>=strokes.length){ onDone&&onDone(); return; }
-        const L=plen(strokes[i].pts), dur=Math.max(380, L*11)/(opt.speed||1);
-        numLabel(i); animStroke(i,dur); i++; timer=setTimeout(next, dur+260/(opt.speed||1)); };
-      next();
+      api.cancelQuiz(); api.stop();
+      ready.then(()=>{ clearInk(); let i=0;
+        const next=()=>{ if(i>=strokes.length){ onDone&&onDone(); return; }
+          const L=plen(strokes[i].pts), dur=Math.max(380, L*11)/(opt.speed||1);
+          numLabel(i); const j=i; animStroke(j,dur); i++; timer=setTimeout(next, dur+260/(opt.speed||1)); };
+        next(); });
     },
-    show(){ api.cancelQuiz(); api.stop(); drawFull(); },
-    showNumbers(){ api.cancelQuiz(); api.stop(); drawFull(); strokes.forEach((_,i)=>numLabel(i)); },
-    hide(){ api.stop(); clearInk(); },
-    toggleOutline(){ outlineOn=!outlineOn; gOut.style.opacity=outlineOn?1:0; return outlineOn; },
+    show(){ api.cancelQuiz(); api.stop(); ready.then(()=>{ gNum.innerHTML=""; setState(strokes.length,0); }); },
+    showNumbers(){ api.cancelQuiz(); api.stop(); ready.then(()=>{ gNum.innerHTML=""; setState(strokes.length,0); strokes.forEach((_,i)=>numLabel(i)); }); },
+    hide(){ api.stop(); ready.then(clearInk); },
+    toggleOutline(){ outlineOn=!outlineOn; paint(); return outlineOn; },
     cancelQuiz(){ if(quiz){ quiz.off(); quiz=null; } },
     quiz(cb={}){
-      api.stop(); api.cancelQuiz(); clearInk();
+      api.stop(); api.cancelQuiz(); ready.then(clearInk);
       let k=0, misses=0, totalMiss=0, cur=null, drawing=false;
       const pt=e=>{ const r=svg.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100]; };
       const down=e=>{ if(k>=strokes.length) return; e.preventDefault(); svg.setPointerCapture&&svg.setPointerCapture(e.pointerId); drawing=true; cur=[pt(e)];
@@ -173,12 +212,12 @@ HW.create = function(container, text, opt={}){
       const move=e=>{ if(!drawing) return; e.preventDefault(); const q=pt(e); if(dist(q,cur[cur.length-1])>0.8){ cur.push(q); gUser.firstChild.setAttribute("d",pathD(cur)); } };
       const up=e=>{ if(!drawing) return; drawing=false; gUser.innerHTML="";
         const m=match(cur, strokes[k].pts);
-        if(m.ok){ const p=animStroke(k,160); k++; misses=0; cb.onCorrect&&cb.onCorrect(k,strokes.length);
+        if(m.ok){ setState(k,0); animStroke(k,180); k++; misses=0; cb.onCorrect&&cb.onCorrect(k,strokes.length);
           if(k>=strokes.length){ quiz.off(); quiz=null; cb.onComplete&&cb.onComplete({mistakes:totalMiss}); } }
         else { misses++; totalMiss++; svg.classList.remove("shake"); svg.getBoundingClientRect(); svg.classList.add("shake");
           cb.onMistake&&cb.onMistake(m.reversed?"reversed":"miss", k);
           if(misses>=2){ // hint: flash the expected stroke with its start point
-            const s=strokes[k]; const hp=el("path",{d:pathD(s.pts),stroke:"#f5a623",opacity:".8"}); gInk.append(hp);
+            const s=strokes[k]; const hp=el("path",{d:pathD(s.pts),stroke:"#f5a623",opacity:".8"}); gHint.append(hp);
             const L=hp.getTotalLength(); hp.style.strokeDasharray=L; hp.style.strokeDashoffset=L; hp.getBoundingClientRect(); hp.style.transition="stroke-dashoffset 600ms"; hp.style.strokeDashoffset=0;
             const dot=el("circle",{cx:s.pts[0][0],cy:s.pts[0][1],r:4,fill:"#f5a623"}); gNum.append(dot);
             setTimeout(()=>{hp.remove();dot.remove();},1300); } } };
@@ -187,7 +226,7 @@ HW.create = function(container, text, opt={}){
       quiz={off(){ svg.removeEventListener("pointerdown",down); svg.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); svg.removeEventListener("pointercancel",up); svg.classList.remove("quizzing"); svg.style.touchAction=""; }};
     }
   };
-  if(opt.start==="full") drawFull(); else if(opt.start==="numbers") api.showNumbers();
+  ready.then(()=>{ if(opt.start==="full") setState(strokes.length,0); else if(opt.start==="numbers") api.showNumbers(); else paint(); });
   return api;
 };
 })();

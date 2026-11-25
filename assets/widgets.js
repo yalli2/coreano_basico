@@ -70,22 +70,35 @@ W.builder=s=>{ const H=HangulWriter; const sel={l:"ㅎ",v:"ㅏ",t:"ㄴ"};
 
 /* vocal-organ diagram for the 5 basic consonants (훈민정음 해례: 象形) */
 function profile(kind){
-  const hl="#c0392b";
-  const tongue={ "ㄱ":"M70 128 Q95 132 112 124 Q132 112 140 96 Q146 104 146 120 L146 178",
-    "ㄴ":"M74 92 Q72 104 74 124 Q100 136 128 132 Q144 128 146 150 L146 178",
-    "def":"M68 124 Q100 136 126 128 Q142 124 146 146 L146 178" }[kind]||"M68 124 Q100 136 126 128 Q142 124 146 146 L146 178";
-  const hiTongue=(kind==="ㄱ"||kind==="ㄴ");
-  return `<svg viewBox="0 0 200 200" class="prof">
-   <path d="M150 20 Q100 8 70 30 Q56 42 52 56 L36 74 Q34 80 44 82 L50 84 Q46 92 50 96 L46 100 Q44 108 54 110 Q48 116 52 124 Q56 138 70 144 Q76 160 90 166 L110 168 Q126 170 132 196" fill="#f6e7d6" stroke="#8a6a50" stroke-width="2"/>
-   <path d="M58 96 Q90 80 120 84 Q138 86 144 96" fill="none" stroke="#8a6a50" stroke-width="2"/>
-   <path d="M144 96 Q150 104 150 120 L150 196" fill="none" stroke="#8a6a50" stroke-width="2"/>
-   <path d="M62 96 L64 104 L68 96" fill="#fff" stroke="${kind==="ㅅ"?hl:"#8a6a50"}" stroke-width="${kind==="ㅅ"?3:1.5}"/>
-   <path d="M64 124 L66 116 L70 124" fill="#fff" stroke="#8a6a50" stroke-width="1.5"/>
-   <path d="${tongue}" fill="none" stroke="${hiTongue?hl:"#d98c8c"}" stroke-width="${hiTongue?5:4}" stroke-linecap="round" stroke-linejoin="round"/>
-   ${kind==="ㅁ"?`<rect x="38" y="94" width="20" height="22" rx="3" fill="none" stroke="${hl}" stroke-width="3"/>`:""}
-   ${kind==="ㅇ"?`<ellipse cx="150" cy="168" rx="12" ry="12" fill="none" stroke="${hl}" stroke-width="3"/>`:""}
-   ${kind==="ㅅ"?`<circle cx="65" cy="100" r="10" fill="none" stroke="${hl}" stroke-width="2" stroke-dasharray="3 3"/>`:""}
-  </svg>`;
+  const hl="#c0392b",ink="#2d2d34",SK="#fdeedd",CAV="#f9dcd6",TG="#f1a7a0";
+  const T={"ㄱ":"M64 140 C70 136 80 134 92 132 C104 128 114 118 124 116 C132 116 134 126 133 138 C132 152 131 166 130 178 L104 176 C88 166 74 156 64 148 Z",
+   "ㄴ":"M64 124 C68 122 72 124 76 130 C86 134 104 132 118 132 C130 133 133 142 132 154 C131 164 131 172 130 178 L104 176 C88 166 74 156 64 148 C62 140 62 130 64 124 Z"};
+  const t=T[kind]||"M64 138 C72 134 88 130 104 130 C120 130 131 136 132 150 C132 162 131 170 130 178 L104 176 C88 166 74 156 64 148 Z", ht=!!T[kind];
+  const over={"ㄱ":`<path d="M96 126 C108 120 116 113 124 113 C132 114 134 126 133 140" stroke="${hl}" stroke-width="3" stroke-dasharray="2 5"/><circle cx="123" cy="114" r="7" stroke="${hl}" stroke-width="2.6"/>`,
+   "ㄴ":`<circle cx="67" cy="122" r="7" stroke="${hl}" stroke-width="2.6"/>`,
+   "ㅁ":`<ellipse cx="48" cy="131" rx="11" ry="15" stroke="${hl}" stroke-width="3"/>`,
+   "ㅅ":`<ellipse cx="60" cy="131" rx="9" ry="13" stroke="${hl}" stroke-width="3"/>`,
+   "ㅇ":`<ellipse cx="128" cy="205" rx="15" ry="13" stroke="${hl}" stroke-width="3"/>`}[kind]||"";
+  const lc=kind==="ㅁ"?hl:ink, lw=kind==="ㅁ"?3.4:2.3, tc=kind==="ㅅ"?hl:ink, tw=kind==="ㅅ"?2.4:1.3;
+  return `<svg viewBox="20 4 210 276" class="prof"><g stroke-linecap="round" stroke-linejoin="round" fill="none">
+<path d="M100 10 C140 2 186 12 204 48 C216 74 212 112 196 136 C188 148 184 156 184 170 C185 210 188 245 190 280 L104 280 C104 245 102 210 98 180 C88 178 76 178 66 174 C56 170 50 162 51 152 C51 147 50 145 48 142 C46 139 47 136 51 134 C48 131 46 128 47 125 C48 121 51 118 52 114 C48 112 40 110 38 105 C40 100 47 92 54 84 C58 78 58 72 56 64 C54 50 62 28 76 18 C83 14 92 11 100 10 Z" fill="${SK}" stroke="${ink}" stroke-width="2.4"/>
+<path d="M70 174 C90 176 112 170 130 160 C142 152 150 140 154 126" stroke="${ink}" stroke-width="1.6" opacity=".55"/>
+<path d="M64 120 C76 112 98 108 118 110 C128 111 136 116 139 124 C143 134 144 150 144 170 L145 280 L118 280 L118 210 C118 196 116 186 112 180 C90 172 74 160 62 148 Z" fill="${CAV}"/>
+<path d="M64 120 C76 112 98 108 118 110" stroke="${ink}" stroke-width="2"/>
+<path d="M118 110 C128 111 135 116 138 124 C139 128 137 131 134 130" stroke="${ink}" stroke-width="2"/>
+<path d="M139 124 C143 134 144 150 144 170 L145 280" stroke="${ink}" stroke-width="1.8"/>
+<path d="M118 186 L118 280" stroke="${ink}" stroke-width="1.4" opacity=".6"/>
+<path d="M112 190 L128 196 M112 200 L128 206" stroke="${ink}" stroke-width="1.2" opacity=".45"/>
+<path d="${t}" fill="${ht?hl:TG}" fill-opacity="${ht?.85:1}" stroke="${ink}" stroke-width="1.6"/>
+<path d="M56 119 L63 119 L61 128 L57 128 Z" fill="#fff" stroke="${tc}" stroke-width="${tw}"/>
+<path d="M57 134 L61 134 L62 143 L56 143 Z" fill="#fff" stroke="${tc}" stroke-width="${tw}"/>
+<path d="M52 114 C48 118 47 122 47 125 C48 128 50 130 53 131" stroke="${lc}" stroke-width="${lw}"/>
+<path d="M53 132 C48 134 46 137 48 141 C50 144 51 146 51 150" stroke="${lc}" stroke-width="${lw}"/>
+<ellipse cx="162" cy="96" rx="9" ry="15" fill="${SK}" stroke="${ink}" stroke-width="2"/>
+<path d="M159 89 C163 92 164 100 160 104" stroke="${ink}" stroke-width="1.3"/>
+<path d="M68 66 C74 63 81 63 86 66 M71 75 C75 72 80 72 83 75" stroke="${ink}" stroke-width="2"/>
+<path d="M64 104 C68 100 76 98 84 100 C96 102 110 104 124 108" stroke="${ink}" stroke-width="1" opacity=".3"/>
+${over}</g></svg>`;
 }
 window.profileSVG=profile;
 W.origin=s=>h("div",{class:"origin"},s.items.map(o=>h("div",{class:"org"},h("div",{class:"pv",html:profile(o.j)}),
