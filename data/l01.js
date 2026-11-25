@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[1]={block:"A",icon:"📜",ko:"한글의 탄생",
 title:"El nacimiento del hangul",
+video:{src:"video/leccion1.mp4"},
 subtitle:"Quién lo inventó, por qué, y la idea genial detrás de cada letra.",
 goals:["Sé quién creó el hangul (<k>세종대왕</k>) y para qué.","Sé que las consonantes dibujan la boca y las vocales salen de · ㅡ ㅣ.","Entiendo que las letras forman <b>bloques silábicos</b>: <k>ㅎ</k>+<k>ㅏ</k>+<k>ㄴ</k> = <k>한</k>."],
 sections:[

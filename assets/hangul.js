@@ -70,7 +70,7 @@ function syllableParts(ch){
   const [l,v,t]=decompose(ch); const fin=!!t;
   let bl,bv,bt;
   if(VERT.includes(v)){ bl=fin?[6,6,54,50]:[6,12,54,88]; bv=fin?[50,2,96,62]:[50,4,96,96]; bt=[14,64,86,96]; }
-  else if(HORI.includes(v)){ bl=fin?[20,3,80,32]:[18,5,82,46]; bv=fin?[4,22,96,64]:[4,34,96,94]; bt=[18,66,82,97]; }
+  else if(HORI.includes(v)){ bl=fin?[16,0,84,42]:[18,5,82,46]; bv=fin?("ㅗㅛ".includes(v)?[4,29,96,61]:"ㅜㅠ".includes(v)?[4,39,96,77]:[4,26,96,70]):[4,34,96,94]; bt=[16,63,84,99]; }
   else { bl=fin?[10,2,50,24]:[8,4,50,34]; bv=fin?[2,6,98,62]:[2,6,98,96]; bt=[16,66,84,97]; }
   const parts=[{jamo:l,role:"L",strokes:jamoStrokes(l,bl)},{jamo:v,role:"V",strokes:jamoStrokes(v,bv)}];
   if(fin) parts.push({jamo:t,role:"T",strokes:jamoStrokes(t,bt)});
@@ -140,10 +140,48 @@ function glyphRaster(ch, strokes, R){
   return {R,alpha,own:null,tt:null};
 }
 function assign(G, strokes){ // nearest stroke + position along it, for every ink pixel
-  if(G.own) return; const R=G.R, own=new Int16Array(R*R).fill(-1), tt=new Float32Array(R*R), S=[];
-  strokes.forEach((s,si)=>{ const L=plen(s.pts), n=Math.max(4,Math.round(L/1.4)), P=resample(s.pts,n); P.forEach((p,i)=>S.push([p[0]*R/100,p[1]*R/100,si,i/(n-1)])); });
-  for(let j=0;j<R;j++) for(let i=0;i<R;i++){ const q=j*R+i; if(G.alpha[q]<8) continue; let best=1e9,b=null;
-    for(const s of S){ const dx=s[0]-i, dy=s[1]-j, dd=dx*dx+dy*dy; if(dd<best){best=dd;b=s;} } own[q]=b[2]; tt[q]=b[3]; }
+  if(G.own) return; const R=G.R, N=R*R, own=new Int16Array(N).fill(-1), tt=new Float32Array(N), S=[];
+  strokes.forEach((s,si)=>{ const L=plen(s.pts), n=Math.max(4,Math.round(L/1.4)), P=resample(s.pts,n); P.forEach((p,i)=>S.push([p[0]*R/100,p[1]*R/100,si,i/(n-1),s.part])); });
+  const NP=1+Math.max(...strokes.map(s=>s.part)), ink=[];
+  for(let q=0;q<N;q++) if(G.alpha[q]>=8) ink.push(q);
+  // register each jamo's stroke data onto the real glyph (a few ICP steps: per-jamo scale + shift)
+  const near=(x,y)=>{ let best=1e9,bq=-1; for(const q of ink){ const dx=q%R-x, dy=(q-q%R)/R-y, dd=dx*dx+dy*dy; if(dd<best){best=dd;bq=q;} } return [bq%R,(bq-bq%R)/R]; };
+  if(ink.length) for(let p=0;p<NP;p++){ const ss=S.filter(s=>s[4]===p); if(!ss.length) continue;
+    for(let it=0;it<6;it++){ const Q=ss.map(s=>near(s[0],s[1]));
+      const fit=(a,b)=>{ const n=a.length, ma=a.reduce((u,v)=>u+v,0)/n, mb=b.reduce((u,v)=>u+v,0)/n; let c=0,v=0; for(let i=0;i<n;i++){ c+=(a[i]-ma)*(b[i]-mb); v+=(a[i]-ma)**2; }
+        let k=v>R*R*0.002?c/v:1; k=Math.max(0.8,Math.min(1.3,k)); return [k, mb-k*ma]; };
+      const [kx,bx]=fit(ss.map(s=>s[0]),Q.map(q=>q[0])), [ky,by]=fit(ss.map(s=>s[1]),Q.map(q=>q[1]));
+      const lim=R*0.12; ss.forEach(s=>{ const nx=kx*s[0]+bx, ny=ky*s[1]+by; s[0]+=Math.max(-lim,Math.min(lim,nx-s[0]))*0.7; s[1]+=Math.max(-lim,Math.min(lim,ny-s[1]))*0.7; }); } }
+  // distance from each ink pixel to each jamo
+  const dp=new Float32Array(ink.length*NP).fill(1e9);
+  ink.forEach((q,k)=>{ const i=q%R, j=(q-i)/R; for(const s of S){ const dx=s[0]-i, dy=s[1]-j, dd=dx*dx+dy*dy; const o=k*NP+s[4]; if(dd<dp[o]) dp[o]=dd; } });
+  const pp=new Int16Array(ink.length); for(let k=0;k<ink.length;k++){ let b=0; for(let p=1;p<NP;p++) if(dp[k*NP+p]<dp[k*NP+b]) b=p; pp[k]=b; }
+  // connected glyph pieces go wholly to one jamo, so colours never bleed between jamo:
+  // every stroke sample votes for the glyph piece it lands on; a piece belongs to the jamo with the largest share of its samples there
+  const idx=new Int32Array(N).fill(-1); ink.forEach((q,k)=>idx[q]=k); const comp=new Int32Array(ink.length).fill(-1); let nc=0;
+  const strong=k=>G.alpha[ink[k]]>=150, nb=q=>{ const i=q%R, o=[]; if(i>0)o.push(q-1); if(i<R-1)o.push(q+1); if(q>=R)o.push(q-R); if(q<N-R)o.push(q+R); return o; };
+  for(let k0=0;k0<ink.length;k0++){ if(comp[k0]>=0||!strong(k0)) continue; const st=[k0]; comp[k0]=nc;
+    while(st.length){ const q=ink[st.pop()]; for(const nq of nb(q)){ const k=idx[nq]; if(k>=0&&comp[k]<0&&strong(k)){ comp[k]=nc; st.push(k); } } } nc++; }
+  for(let pass=0;pass<4;pass++) for(let k=0;k<ink.length;k++){ if(comp[k]>=0) continue; for(const nq of nb(ink[k])){ const j=idx[nq]; if(j>=0&&comp[j]>=0){ comp[k]=comp[j]; break; } } }
+  for(let k=0;k<ink.length;k++) if(comp[k]<0) comp[k]=nc++;
+  const vote=new Float32Array(nc*NP), tot=new Float32Array(NP);
+  for(const s of S){ let best=1e9,bk=-1; for(let k=0;k<ink.length;k++){ const q=ink[k], dx=q%R-s[0], dy=(q-q%R)/R-s[1], dd=dx*dx+dy*dy; if(dd<best){best=dd;bk=k;} } if(bk>=0){ vote[comp[bk]*NP+s[4]]++; } tot[s[4]]++; }
+  const cpart=new Int16Array(nc).fill(-1);
+  for(let c=0;c<nc;c++){ const f=[]; for(let p=0;p<NP;p++) f.push(vote[c*NP+p]/Math.max(1,tot[p])); const o=f.map((v,p)=>p).sort((x,y)=>f[y]-f[x]);
+    if(f[o[0]]>0 && (NP<2 || f[o[1]]<0.2)) cpart[c]=o[0]; }
+  ink.forEach((q,k)=>{ if(cpart[comp[k]]>=0) pp[k]=cpart[comp[k]]; });
+  // a piece shared by two jamo (e.g. the ㅇ of 훈 resting on ㅜ): erode it until it splits, give each core to a jamo, regrow
+  for(let c=0;c<nc;c++){ if(cpart[c]>=0) continue; const ks=[]; ink.forEach((q,k)=>{ if(comp[k]===c) ks.push(k); }); if(ks.length<20) continue;
+    let set=new Set(ks.map(k=>ink[k])), cores=null;
+    for(let e=0;e<Math.round(R*0.05)&&set.size;e++){ const nxt=new Set(); for(const q of set){ if(nb(q).length===4&&nb(q).every(n=>set.has(n))) nxt.add(q); } set=nxt;
+      const lab=new Map(); let n=0, sizes=[]; for(const q0 of set){ if(lab.has(q0)) continue; const st=[q0]; lab.set(q0,n); let sz=0; while(st.length){ const q=st.pop(); sz++; for(const m of nb(q)) if(set.has(m)&&!lab.has(m)){ lab.set(m,n); st.push(m); } } sizes.push(sz); n++; }
+      if(sizes.filter(z=>z>=ks.length*0.06).length>=2){ cores={lab,sizes,n}; break; } }
+    if(!cores) continue;
+    const cv=new Float32Array(cores.n*NP), cq=[...cores.lab.keys()];
+    for(const sp of S){ let best=1e9,bq=-1; for(const q of cq){ const dx=q%R-sp[0], dy=(q-q%R)/R-sp[1], dd=dx*dx+dy*dy; if(dd<best){best=dd;bq=q;} } if(best<(R*0.12)**2) cv[cores.lab.get(bq)*NP+sp[4]]++; }
+    const corePart=[]; for(let i=0;i<cores.n;i++){ let b=0; for(let p=1;p<NP;p++) if(cv[i*NP+p]/Math.max(1,tot[p])>cv[i*NP+b]/Math.max(1,tot[b])) b=p; corePart.push(cv[i*NP+b]>0?b:-1); }
+    for(const k of ks){ const q=ink[k]; let best=1e9,bq=-1; for(const m of cq){ if(corePart[cores.lab.get(m)]<0) continue; const dx=q%R-m%R, dy=(q-q%R)/R-(m-m%R)/R, dd=dx*dx+dy*dy; if(dd<best){best=dd;bq=m;} } if(bq>=0) pp[k]=corePart[cores.lab.get(bq)]; } }
+  ink.forEach((q,k)=>{ const i=q%R, j=(q-i)/R; let best=1e9,b=null; for(const s of S){ if(s[4]!==pp[k]) continue; const dx=s[0]-i, dy=s[1]-j, dd=dx*dx+dy*dy; if(dd<best){best=dd;b=s;} } own[q]=b[2]; tt[q]=b[3]; });
   G.own=own; G.tt=tt;
 }
 
@@ -151,7 +189,7 @@ HW.create = function(container, text, opt={}){
   const size=opt.size||160, chars=Array.from(text);
   const ch=chars[0];
   const parts=syllableParts(ch);
-  const strokes=[]; parts.forEach(p=>p.strokes.forEach(s=>strokes.push({pts:s,role:p.role,jamo:p.jamo})));
+  const strokes=[]; parts.forEach((p,pi)=>p.strokes.forEach(s=>strokes.push({pts:s,role:p.role,jamo:p.jamo,part:pi})));
   const sw=opt.strokeWidth || (isSyl(ch)?7.2:9);
   const svg=el("svg",{viewBox:"0 0 100 100",width:size,height:size,class:"hw-svg"});
   const g0=el("g",{stroke:"#e9dcc8","stroke-width":"0.6","stroke-dasharray":"2 2"});
