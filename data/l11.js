@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[11]={block:"B",icon:"👉",ko:"이게 뭐예요?",
 title:"¿Qué es esto? 이/그/저",
+video:{src:"video/leccion11.mp4"},
 subtitle:"Esto, eso, aquello; y la negación <k>이/가 아니에요</k>.",
 goals:["Pregunto <k>이게 뭐예요?</k>","Uso <k>이 / 그 / 저</k>.","Niego con <k>N이/가 아니에요</k>."],
 sections:[

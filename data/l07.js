@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[7]={block:"A",icon:"🎶",ko:"발음 규칙",
 title:"Reglas de pronunciación",
+video:{src:"video/leccion7.mp4"},
 subtitle:"Se escribe <k>한국어</k> pero se dice [한구거]. 6 reglas que explican por qué.",
 goals:["Aplico el encadenamiento: <k>음악</k> [으막].","Reconozco la nasalización: <k>감사합니다</k> [감사함니다].","Sé que la escritura no cambia, solo la pronunciación."],
 sections:[

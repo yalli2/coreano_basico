@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[5]={block:"A",icon:"🔗",ko:"이중 모음",
 title:"Las vocales compuestas",
+video:{src:"video/leccion5.mp4"},
 subtitle:"<k>ㅐ ㅔ ㅘ ㅝ ㅚ ㅟ ㅢ</k>… piezas de LEGO con vocales que ya conoces.",
 goals:["Leo las 11 vocales compuestas.","Sé que <k>ㅐ</k>=<k>ㅔ</k> («e») y <k>ㅙ</k>=<k>ㅚ</k>=<k>ㅞ</k> («we»).","Pronuncio bien <k>ㅢ</k>."],
 sections:[

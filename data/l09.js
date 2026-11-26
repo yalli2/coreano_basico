@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[9]={block:"B",icon:"🙇",ko:"인사",
 title:"Saludos y expresiones básicas",
+video:{src:"video/leccion9.mp4"},
 subtitle:"Hola, gracias, perdón, adiós… y las frases de clase.",
 goals:["Saludo y me despido correctamente.","Doy las gracias y pido perdón.","Uso frases útiles en clase."],
 sections:[

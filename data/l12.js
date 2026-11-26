@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[12]={block:"B",icon:"💰",ko:"얼마예요?",
 title:"Números sino-coreanos y compras",
+video:{src:"video/leccion12.mp4"},
 subtitle:"<k>일 이 삼</k>… precios en <k>원</k>, teléfonos y <k>주세요</k>.",
 goals:["Cuento con números sino-coreanos.","Pregunto precios: <k>얼마예요?</k>","Pido cosas: <k>N 주세요</k>."],
 sections:[

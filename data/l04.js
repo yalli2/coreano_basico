@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[4]={block:"A",icon:"💨",ko:"격음과 경음",
 title:"Aspiradas y tensas",
+video:{src:"video/leccion4.mp4"},
 subtitle:"<k>가 · 카 · 까</k>: tres sonidos que en español serían uno.",
 goals:["Leo <k>ㅋ ㅌ ㅍ ㅊ</k> y <k>ㄲ ㄸ ㅃ ㅆ ㅉ</k>.","Distingo de oído <k>가/카/까</k>.","Pronuncio el soplo y la tensión."],
 sections:[

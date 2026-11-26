@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[8]={block:"A",icon:"🪧",ko:"읽고 쓰기",
 title:"¡A leer y escribir!",
+video:{src:"video/leccion8.mp4"},
 subtitle:"Palabras extranjeras, carteles de la calle, países y tu nombre en hangul.",
 goals:["Leo préstamos como <k>커피</k> o <k>컴퓨터</k>.","Entiendo carteles: <k>입구</k>, <k>출구</k>, <k>화장실</k>.","Escribo mi nombre y mi país en coreano."],
 sections:[

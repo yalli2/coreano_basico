@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[15]={block:"B",icon:"📍",ko:"어디에 있어요?",
 title:"¿Dónde está? 있어요 / 없어요",
+video:{src:"video/leccion15.mp4"},
 subtitle:"Hay / no hay, ubicación (arriba, abajo, al lado…) y <k>에서</k> (acción en un lugar).",
 goals:["Uso <k>이/가 있어요 / 없어요</k>.","Digo dónde está algo: <k>책상 위에 있어요</k>.","Distingo <k>에</k> (estar/ir) y <k>에서</k> (hacer)."],
 sections:[

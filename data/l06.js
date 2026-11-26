@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[6]={block:"A",icon:"🧱",ko:"받침",
 title:"La consonante final (받침)",
+video:{src:"video/leccion6.mp4"},
 subtitle:"Muchas letras posibles, solo 7 sonidos. Cierra la sílaba sin añadir vocal.",
 goals:["Conozco los 7 sonidos finales.","Distingo <k>반</k>/<k>밤</k>/<k>방</k>.","Leo 받침 dobles: <k>닭</k>, <k>없다</k>."],
 sections:[

@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[14]={block:"B",icon:"☀️",ko:"뭐 해요?",
 title:"Mi día: verbos en presente -아요/어요",
+video:{src:"video/leccion14.mp4"},
 subtitle:"Conjuga verbos y usa <k>을/를</k> (objeto) y <k>에 가요</k> (ir a).",
 goals:["Conjugo verbos en presente cortés.","Marco el objeto con <k>을/를</k>.","Digo adónde voy: <k>N에 가요</k>."],
 sections:[

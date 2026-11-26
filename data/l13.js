@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[13]={block:"B",icon:"⏰",ko:"몇 시예요?",
 title:"Números nativos, contadores y la hora",
+video:{src:"video/leccion13.mp4"},
 subtitle:"<k>하나 둘 셋</k>… para contar cosas, personas, edad y horas.",
 goals:["Cuento de 1 a 10 con números nativos.","Uso contadores: <k>개</k>, <k>명</k>, <k>잔</k>, <k>살</k>.","Digo la hora: <k>세 시 반</k>."],
 sections:[

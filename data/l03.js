@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[3]={block:"A",icon:"🅱️",ko:"기본 자음",
 title:"Las consonantes básicas",
+video:{src:"video/leccion3.mp4"},
 subtitle:"<k>ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ ㅈ ㅎ</k>: sonido y posición.",
 goals:["Pronuncio 10 consonantes básicas.","Sé que <k>ㄱ ㄷ ㅂ ㅈ</k> se suavizan entre vocales.","Leo palabras como <k>나무</k>, <k>바다</k>, <k>모자</k>."],
 sections:[

@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[10]={block:"B",icon:"🙋",ko:"자기소개",
 title:"Presentarse: 저는 ~이에요",
+video:{src:"video/leccion10.mp4"},
 subtitle:"Nombre, país y profesión con <k>은/는</k> y <k>이에요/예요</k>.",
 goals:["Digo mi nombre, nacionalidad y profesión.","Uso <k>은/는</k> (tema) y <k>이에요/예요</k> (ser).","Pregunto: <k>이름이 뭐예요?</k>"],
 sections:[

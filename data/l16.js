@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[16]={block:"B",icon:"🌦",ko:"어제 뭐 했어요?",
 title:"El pasado, la negación y el tiempo",
+video:{src:"video/leccion16.mp4"},
 subtitle:"<k>-았/었어요</k> (pasado), <k>안</k> (no) y el clima.",
 goals:["Hablo del pasado: <k>어제 영화를 봤어요</k>.","Niego con <k>안</k>: <k>안 가요</k>.","Describo el tiempo: <k>비가 와요</k>."],
 sections:[

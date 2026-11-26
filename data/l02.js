@@ -1,6 +1,7 @@
 window.LESSONS=window.LESSONS||{};
 LESSONS[2]={block:"A",icon:"🅰️",ko:"기본 모음",
 title:"Las 10 vocales básicas",
+video:{src:"video/leccion2.mp4"},
 subtitle:"<k>ㅏ ㅓ ㅗ ㅜ ㅡ ㅣ</k> y sus parejas con «y».",
 goals:["Leo y pronuncio las 10 vocales básicas.","Distingo <k>어</k>/<k>오</k> y <k>으</k>/<k>우</k>.","Escribo las vocales con el orden correcto."],
 sections:[
